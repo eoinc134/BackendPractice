@@ -41,14 +41,6 @@ BackendPractice/
 | PATCH | `/habits/{id}` | Update an existing habit |
 | DELETE | `/habits/{id}` | Delete a habit |
 
-### Running locally
-
-```bash
-uvicorn main:app --reload
-```
-
-Interactive docs available at `http://localhost:8000/docs`.
-
 ## Progress
 
 * [x] Getting started
