@@ -1,12 +1,15 @@
 import logging
 
 from fastapi import FastAPI
-from routes.habits import router
+
+from routes.habits import habits_router
+from routes.user import user_router
 from db.database import create_db_and_tables
 
 # Application Setup
 app = FastAPI()
-app.include_router(router)
+app.include_router(habits_router)
+app.include_router(user_router)
 logger = logging.getLogger(__name__)
 
 # Startup Event

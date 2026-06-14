@@ -1,23 +1,29 @@
-from fastapi import APIRouter, HTTPException
 import logging
+from typing import Annotated
+
+from fastapi import APIRouter, HTTPException, Depends
+from fastapi.security import OAuth2PasswordBearer
+
 from db.database import SessionDep
 from sqlmodel import select
 
 from db.models import Habit, HabitCreate, HabitRead, HabitUpdate
 
 # Router Setup
-router = APIRouter(prefix='/habits', tags=['habits'])
+habits_router = APIRouter(prefix='/habits', tags=['habits'])
 logger = logging.getLogger(__name__)
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_token = Annotated[str, Depends(oauth2_scheme)]
 
 # GET habits
-@router.get('/', response_model=list[HabitRead])
-def get_habits(session: SessionDep) -> list[Habit]:
+@habits_router.get('/', response_model=list[HabitRead])
+def get_habits(session: SessionDep, token: oauth2_token) -> list[Habit]:
     logger.info("Fetching all habits")
     return session.exec(select(Habit)).all()
 
 # GET habit by ID
-@router.get('/{id}', response_model=HabitRead)
-def get_habit(id: int, session: SessionDep) -> Habit:
+@habits_router.get('/{id}', response_model=HabitRead)
+def get_habit(id: int, session: SessionDep, token: oauth2_token) -> Habit:
     logger.info(f"Fetching habit with ID: {id}")
     habit = session.get(Habit, id)
     
@@ -27,8 +33,8 @@ def get_habit(id: int, session: SessionDep) -> Habit:
     return habit
 
 # POST habits
-@router.post('/', response_model=HabitRead)
-def create_habit(habit: HabitCreate, session: SessionDep) -> Habit:
+@habits_router.post('/', response_model=HabitRead)
+def create_habit(habit: HabitCreate, session: SessionDep, token: oauth2_token) -> Habit:
     logger.info(f"Creating habit: {habit.name}")
     db_habit = Habit.model_validate(habit)
     
@@ -40,8 +46,8 @@ def create_habit(habit: HabitCreate, session: SessionDep) -> Habit:
     return db_habit
 
 # PATCH habits
-@router.patch('/{id}', response_model=HabitRead)
-def update_habit(id: int, habit: HabitUpdate, session: SessionDep) -> Habit:
+@habits_router.patch('/{id}', response_model=HabitRead)
+def update_habit(id: int, habit: HabitUpdate, session: SessionDep, token: oauth2_token) -> Habit:
     logger.info(f"Updating habit with ID: {id}")
     db_habit = session.get(Habit, id)
     
@@ -59,8 +65,8 @@ def update_habit(id: int, habit: HabitUpdate, session: SessionDep) -> Habit:
     return db_habit
 
 # DELETE habits
-@router.delete('/{id}')
-def delete_habit(id: int, session: SessionDep):
+@habits_router.delete('/{id}')
+def delete_habit(id: int, session: SessionDep, token: oauth2_token):
     logger.info(f"Deleting habit with ID: {id}")
     habit = session.get(Habit, id)
     

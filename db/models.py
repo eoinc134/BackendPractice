@@ -7,6 +7,23 @@ class UserBase(SQLModel):
 
 class User(UserBase, table=True):
     id: int = Field(default=None, primary_key=True)
+    username: str
+    hashed_password: str
+    disabled: bool = False
+    
+class UserRead(UserBase):
+    id: int
+    name: str
+    email: str
+    username: str
+    
+# TOKEN model
+class Token(SQLModel):
+    access_token: str
+    token_type: str
+
+class TokenData(SQLModel):
+    username: str | None = None
 
 # HABIT model
 class HabitBase(SQLModel):
