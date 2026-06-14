@@ -19,14 +19,18 @@ BackendPractice/
 ├── main.py              # App init, global error handler, router registration
 ├── routes/
 │   └── habits.py        # All /habits endpoints using APIRouter
-└── models/
-    └── habit.py         # Pydantic model for request/response validation
+├── db/
+│   ├── database.py      # Engine, session, SessionDep dependency
+│   └── models.py        # SQLModel table definitions and schemas
+└── .env                 # DATABASE_URL (not committed)
 ```
 
 ### Features
 
 - Route organisation with `APIRouter` and prefix/tag grouping
-- Request validation via Pydantic models (automatic 422 on bad input)
+- SQLModel for database models with separate `HabitCreate`, `HabitRead`, and `HabitUpdate` schemas
+- SQLite database via SQLAlchemy, configured through `DATABASE_URL` in `.env`
+- Request validation via Pydantic/SQLModel (automatic 422 on bad input)
 - Proper HTTP error responses using `HTTPException` (404 for missing habits)
 - Structured logging with `logging.getLogger(__name__)` per module
 - Global exception handler for unexpected server errors
