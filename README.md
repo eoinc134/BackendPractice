@@ -18,32 +18,39 @@ A REST API for managing habits, built with FastAPI.
 BackendPractice/
 ├── main.py              # App init, global error handler, router registration
 ├── routes/
-│   └── habits.py        # All /habits endpoints using APIRouter
+│   ├── habits.py        # All /habits endpoints using APIRouter
+│   └── user.py          # Auth endpoints and JWT helper functions
 ├── db/
 │   ├── database.py      # Engine, session, SessionDep dependency
 │   └── models.py        # SQLModel table definitions and schemas
-└── .env                 # DATABASE_URL (not committed)
+└── .env                 # DATABASE_URL, SECRET_KEY, ALGORITHM (not committed)
 ```
 
 ### Features
 
 - Route organisation with `APIRouter` and prefix/tag grouping
-- SQLModel for database models with separate `HabitCreate`, `HabitRead`, and `HabitUpdate` schemas
+- SQLModel for database models with separate `Create`, `Read`, and `Update` schemas
 - SQLite database via SQLAlchemy, configured through `DATABASE_URL` in `.env`
 - Request validation via Pydantic/SQLModel (automatic 422 on bad input)
-- Proper HTTP error responses using `HTTPException` (404 for missing habits)
+- Proper HTTP error responses using `HTTPException` (404 for missing resources)
+- JWT authentication with `python-jose`, token issued at `/users/token`
+- Password hashing with `pwdlib`
+- Protected routes via `OAuth2PasswordBearer` dependency
 - Structured logging with `logging.getLogger(__name__)` per module
 - Global exception handler for unexpected server errors
 
 ### Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/habits` | List all habits |
-| GET | `/habits/{id}` | Get a single habit by ID |
-| POST | `/habits` | Create a new habit |
-| PATCH | `/habits/{id}` | Update an existing habit |
-| DELETE | `/habits/{id}` | Delete a habit |
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/users/token` | No | Login and receive a JWT |
+| GET | `/users/current` | Yes | Get the current logged-in user |
+| GET | `/habits/` | Yes | List all habits |
+| GET | `/habits/{id}` | Yes | Get a single habit by ID |
+| POST | `/habits/` | Yes | Create a new habit |
+| PATCH | `/habits/{id}` | Yes | Update an existing habit |
+| DELETE | `/habits/{id}` | Yes | Delete a habit |
+
 
 ## Progress
 
@@ -53,3 +60,5 @@ BackendPractice/
 * [x] Validation — Pydantic models replacing raw `dict` parameters
 * [x] Error handling — `HTTPException` and a global exception handler
 * [x] Logging — per-module loggers with `logging.getLogger(__name__)`
+* [x] Database — SQLite with SQLModel, environment-based config via `.env`
+* [x] Authentication — JWT-based auth with password hashing and protected routes
