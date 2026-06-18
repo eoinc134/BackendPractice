@@ -1,6 +1,8 @@
 import logging
 
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 
 from routes.habits import habits_router
 from routes.user import user_router
@@ -21,5 +23,16 @@ def startup_event():
 # Global Exception Handler
 @app.exception_handler(Exception)
 def exception_handler(request, exc):
-    logger.error(f"An error occurred: {exc}")
-    return {"message": "An error occurred", "details": str(exc)}
+    logger.error(f"Unhandled exception: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"message": "An internal server error occurred."},
+    )
+    
+@app.exception_handler(RequestValidationError)
+def request_validation_error_handler(request, exc):
+    logger.warning(f"Request validation error: {exc}")
+    return JSONResponse(
+        status_code=422,
+        content={"message": "Invalid request data."},
+    )

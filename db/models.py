@@ -2,20 +2,20 @@ from sqlmodel import SQLModel, Field
 
 # USER model
 class UserBase(SQLModel):
-    name: str
-    email: str
+    name: str = Field(min_length=2, max_length=100)
+    email: str = Field(min_length=5, max_length=100)
 
 class User(UserBase, table=True):
     id: int = Field(default=None, primary_key=True)
-    username: str
-    hashed_password: str
+    username: str = Field(min_length=3, max_length=50)
+    hashed_password: str = Field(min_length=6, max_length=100)
     disabled: bool = False
     
 class UserRead(UserBase):
-    id: int
-    name: str
-    email: str
-    username: str
+    id: int = Field(default=None, primary_key=True)
+    name: str = Field(min_length=2, max_length=100)
+    email: str = Field(min_length=5, max_length=100)
+    username: str = Field(min_length=3, max_length=50)
     
 # TOKEN model
 class Token(SQLModel):
@@ -27,19 +27,19 @@ class TokenData(SQLModel):
 
 # HABIT model
 class HabitBase(SQLModel):
-    name: str
-    frequency: str
+    name: str = Field(min_length=2, max_length=100)
+    frequency: str = Field(min_length=2, max_length=50)  # e.g., "daily", "weekly", etc.
     
 class Habit(HabitBase, table=True):
     id: int = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key="user.id")
     
 class HabitCreate(HabitBase):
-    user_id: int
+    user_id: int = Field(foreign_key="user.id")  # Ensure user_id is provided when creating a habit
     
 class HabitRead(HabitBase):
-    id: int
-    user_id: int
+    id: int = Field(default=None, primary_key=True)
+    user_id: int = Field(foreign_key="user.id")
     
 class HabitUpdate(HabitBase):
     name: str | None = None
@@ -49,4 +49,4 @@ class HabitUpdate(HabitBase):
 class Completion(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
     habit_id: int = Field(foreign_key="habit.id")
-    completed_at: str
+    completed_at: str = Field(default=None)  # Store completion timestamp as a string (ISO format)
