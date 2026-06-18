@@ -31,13 +31,15 @@ BackendPractice/
 - Route organisation with `APIRouter` and prefix/tag grouping
 - SQLModel for database models with separate `Create`, `Read`, and `Update` schemas
 - SQLite database via SQLAlchemy, configured through `DATABASE_URL` in `.env`
-- Request validation via Pydantic/SQLModel (automatic 422 on bad input)
+- ORM everywhere — no raw SQL, parameterized queries handled by SQLModel
+- Field-level validation with `min_length`/`max_length` constraints on all models
+- Custom 422 handler returns clean `{"message": "Invalid request data."}` to callers
 - Proper HTTP error responses using `HTTPException` (404 for missing resources)
+- Global exception handler logs full detail server-side, returns generic 500 to callers
 - JWT authentication with `python-jose`, token issued at `/users/token`
 - Password hashing with `pwdlib`
 - Protected routes via `OAuth2PasswordBearer` dependency
 - Structured logging with `logging.getLogger(__name__)` per module
-- Global exception handler for unexpected server errors
 
 ### Endpoints
 
@@ -62,3 +64,4 @@ BackendPractice/
 * [x] Logging — per-module loggers with `logging.getLogger(__name__)`
 * [x] Database — SQLite with SQLModel, environment-based config via `.env`
 * [x] Authentication — JWT-based auth with password hashing and protected routes
+* [x] Security hardening — field constraints, clean error responses, no internal detail leaked to callers
