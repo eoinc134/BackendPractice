@@ -10,11 +10,17 @@ class User(UserBase, table=True):
     username: str = Field(min_length=3, max_length=50)
     hashed_password: str = Field(min_length=6, max_length=100)
     disabled: bool = False
+    profile_picture: str | None = None 
     
+class UserCreate(UserBase):
+    username: str = Field(min_length=3, max_length=50)
+    password: str = Field(min_length=6, max_length=100)
+
 class UserRead(UserBase):
     id: int = Field(default=None, primary_key=True)
     name: str = Field(min_length=2, max_length=100)
     email: str = Field(min_length=5, max_length=100)
+    profile_picture: str | None = None  
     username: str = Field(min_length=3, max_length=50)
     
 # TOKEN model

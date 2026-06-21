@@ -8,11 +8,12 @@ from typing import Annotated
 from pwdlib import PasswordHash
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 from db.database import SessionDep
-from db.models import User, TokenData, Token, UserRead
+from db.models import User, TokenData, Token, UserRead, UserCreate
+from db.storage import get_storage, upload_file
 
 # Router Setup
 user_router = APIRouter(prefix='/users', tags=['users'])
@@ -23,6 +24,7 @@ password_hash = PasswordHash.recommended()
 load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
+MINIO_BUCKET = os.getenv("MINIO_BUCKET")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
 
 # HELPER FUNCTIONS
@@ -95,6 +97,24 @@ def get_password_hash(password: str) -> str:
 
 
 # ROUTES
+
+# REGISTER
+@user_router.post('/register', response_model=UserRead)
+def register(user: UserCreate, session: SessionDep):
+    if get_user(user.username, session):
+        raise HTTPException(status_code=400, detail="Username already registered")
+
+    db_user = User(
+        name=user.name,
+        email=user.email,
+        username=user.username,
+        hashed_password=get_password_hash(user.password),
+    )
+    session.add(db_user)
+    session.commit()
+    session.refresh(db_user)
+    return db_user
+
 # GET current user
 @user_router.get('/current', response_model=UserRead)
 async def read_current_users(current_user: Annotated[User, Depends(get_current_active_user)]):
@@ -112,3 +132,18 @@ async def login(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], sess
     access_token = create_access_token(data={"sub": user.username}, expires_delta=access_token_expires)
     
     return {"access_token": access_token, "token_type": "bearer"}
+
+# Upload profile picture
+@user_router.post('/upload-profile-picture')
+async def upload_profile_picture(file: UploadFile, current_user: Annotated[User, Depends(get_current_active_user)], session: SessionDep):
+    # Upload the file to MinIO and get the object key
+    object_key = upload_file(file, MINIO_BUCKET, file.filename)
+    
+    # Update the user's profile picture in the database
+    current_user.profile_picture = object_key
+    session.add(current_user)
+    session.commit()
+    session.refresh(current_user)
+    
+    return {"message": "Profile picture uploaded successfully", "object_key": object_key}
+    
